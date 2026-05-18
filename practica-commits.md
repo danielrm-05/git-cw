@@ -23,7 +23,9 @@ Algo sobre mí: Mi comida favorita son las enchiladas verdes.
 **Qué hacer:** Agrega al menos tres cosas que sabes hacer (no tienen que ser de programación).  
 **Commit:** `feat(habilidades): agrega lista de habilidades`
 
-- 
+- Soy muy bueno en la repostería
+- Aprendo rápido
+- Soy muy proactivo
 
 ---
 
