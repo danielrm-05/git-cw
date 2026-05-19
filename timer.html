@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f0f1a;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #fff;
+    }
+
+    .card {
+      background: #1a1a2e;
+      border: 1px solid #2a2a4a;
+      border-radius: 28px;
+      padding: 48px 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255,255,255,0.03);
+      width: 380px;
+    }
+
+    h1 {
+      font-size: 14px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #6c6c9a;
+      font-weight: 500;
+    }
+
+    /* ── Ring ── */
+    .ring-wrap {
+      position: relative;
+      width: 220px;
+      height: 220px;
+    }
+
+    svg.ring {
+      width: 220px;
+      height: 220px;
+      transform: rotate(-90deg);
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: #2a2a4a;
+      stroke-width: 8;
+    }
+
+    .ring-progress {
+      fill: none;
+      stroke: url(#grad);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .display {
+      font-size: 52px;
+      font-weight: 200;
+      letter-spacing: 2px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+
+    .display.running {
+      color: #a78bfa;
+    }
+
+    .display.finished {
+      color: #f87171;
+      animation: pulse 0.6s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { opacity: 1; }
+      to   { opacity: 0.4; }
+    }
+
+    .status-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #6c6c9a;
+    }
+
+    /* ── Inputs ── */
+    .inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .time-field {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .time-field label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #6c6c9a;
+    }
+
+    .time-field input {
+      width: 72px;
+      text-align: center;
+      background: #0f0f1a;
+      border: 1px solid #2a2a4a;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 28px;
+      font-weight: 200;
+      padding: 10px 8px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-variant-numeric: tabular-nums;
+      -moz-appearance: textfield;
+    }
+
+    .time-field input::-webkit-inner-spin-button,
+    .time-field input::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+    }
+
+    .time-field input:focus {
+      border-color: #7c3aed;
+    }
+
+    .time-field input:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .separator {
+      font-size: 32px;
+      font-weight: 200;
+      color: #4a4a7a;
+      margin-top: 18px;
+    }
+
+    /* ── Buttons ── */
+    .buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 14px 24px;
+      transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
+    }
+
+    .btn-start:hover {
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.6);
+    }
+
+    .btn-start:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-stop {
+      background: #2a2a4a;
+      color: #a78bfa;
+      border: 1px solid #3a3a6a;
+    }
+
+    .btn-stop:hover {
+      background: #32324f;
+    }
+
+    .btn-stop:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .btn-reset {
+      background: #2a2a4a;
+      color: #6c6c9a;
+      border: 1px solid #3a3a6a;
+    }
+
+    .btn-reset:hover {
+      background: #32324f;
+      color: #a0a0ca;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Timer</h1>
+
+  <!-- Ring -->
+  <div class="ring-wrap">
+    <svg class="ring" viewBox="0 0 220 220">
+      <defs>
+        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="#7c3aed" />
+          <stop offset="100%" stop-color="#a78bfa" />
+        </linearGradient>
+      </defs>
+      <circle class="ring-bg"       cx="110" cy="110" r="98" />
+      <circle class="ring-progress" cx="110" cy="110" r="98"
+              id="ringProgress"
+              stroke-dasharray="615.75"
+              stroke-dashoffset="0" />
+    </svg>
+    <div class="ring-center">
+      <div class="display" id="display">00:00</div>
+      <div class="status-label" id="statusLabel">listo</div>
+    </div>
+  </div>
+
+  <!-- Inputs -->
+  <div class="inputs">
+    <div class="time-field">
+      <label>min</label>
+      <input type="number" id="inputMin" min="0" max="99" value="0" />
+    </div>
+    <span class="separator">:</span>
+    <div class="time-field">
+      <label>seg</label>
+      <input type="number" id="inputSec" min="0" max="59" value="0" />
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="buttons">
+    <button class="btn-start" id="btnStart" onclick="startTimer()">Iniciar</button>
+    <button class="btn-stop"  id="btnStop"  onclick="stopTimer()"  disabled>Parar</button>
+    <button class="btn-reset"              onclick="resetTimer()">Reset</button>
+  </div>
+</div>
+
+<script>
+  const CIRCUMFERENCE = 2 * Math.PI * 98; // 615.75
+
+  let totalSeconds  = 0;
+  let remaining     = 0;
+  let intervalId    = null;
+  let running       = false;
+
+  const display     = document.getElementById('display');
+  const statusLabel = document.getElementById('statusLabel');
+  const ring        = document.getElementById('ringProgress');
+  const btnStart    = document.getElementById('btnStart');
+  const btnStop     = document.getElementById('btnStop');
+  const inputMin    = document.getElementById('inputMin');
+  const inputSec    = document.getElementById('inputSec');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function updateDisplay(secs) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    display.textContent = `${pad(m)}:${pad(s)}`;
+  }
+
+  function updateRing(secs) {
+    if (totalSeconds === 0) { ring.style.strokeDashoffset = 0; return; }
+    const fraction = secs / totalSeconds;
+    ring.style.strokeDashoffset = CIRCUMFERENCE * (1 - fraction);
+  }
+
+  function startTimer() {
+    if (running) return;
+
+    if (!remaining) {
+      const m = parseInt(inputMin.value) || 0;
+      const s = parseInt(inputSec.value) || 0;
+      totalSeconds = m * 60 + s;
+      remaining    = totalSeconds;
+    }
+
+    if (remaining <= 0) return;
+
+    running = true;
+    display.classList.remove('finished');
+    display.classList.add('running');
+    statusLabel.textContent = 'corriendo';
+    btnStart.disabled = true;
+    btnStop.disabled  = false;
+    inputMin.disabled = true;
+    inputSec.disabled = true;
+
+    intervalId = setInterval(() => {
+      remaining--;
+      updateDisplay(remaining);
+      updateRing(remaining);
+
+      if (remaining <= 0) {
+        clearInterval(intervalId);
+        running = false;
+        display.classList.remove('running');
+        display.classList.add('finished');
+        statusLabel.textContent = '¡tiempo!';
+        btnStart.disabled = true;
+        btnStop.disabled  = true;
+      }
+    }, 1000);
+
+    updateDisplay(remaining);
+    updateRing(remaining);
+  }
+
+  function stopTimer() {
+    if (!running) return;
+    clearInterval(intervalId);
+    running = false;
+    display.classList.remove('running');
+    statusLabel.textContent = 'pausado';
+    btnStart.disabled = false;
+    btnStop.disabled  = true;
+  }
+
+  function resetTimer() {
+    clearInterval(intervalId);
+    running       = false;
+    totalSeconds  = 0;
+    remaining     = 0;
+    display.classList.remove('running', 'finished');
+    display.textContent      = '00:00';
+    statusLabel.textContent  = 'listo';
+    ring.style.strokeDashoffset = 0;
+    btnStart.disabled = false;
+    btnStop.disabled  = true;
+    inputMin.disabled = false;
+    inputSec.disabled = false;
+    inputMin.value    = 0;
+    inputSec.value    = 0;
+  }
+</script>
+
+</body>
+</html>
